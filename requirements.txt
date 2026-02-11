@@ -3,8 +3,8 @@ flask_sqlalchemy==3.1.1
 SQLAlchemy==2.0.23
 Werkzeug==3.0.1
 flask-login==0.6.3
-pandas==2.2.3
 openpyxl==3.1.2
-Pillow==9.5.0
+pandas==2.2.3
+Pillow==11.1.0
 MarkupSafe==2.1.5
 gunicorn==21.2.0
