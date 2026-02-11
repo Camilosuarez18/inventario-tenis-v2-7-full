@@ -1,0 +1,7 @@
+{% extends 'base.html' %}{% block content %}
+<h2>Inventario</h2>
+<form class="row g-3 mb-3"><div class="col-md-4"><label class="form-label">Filtrar por tienda</label><select class="form-select" name="tienda_id" onchange="this.form.submit()"><option value="">Todas</option>{% for t in tiendas %}<option value="{{ t.id }}" {% if tienda_id==t.id %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}</select></div></form>
+<table class="table table-hover align-middle"><thead><tr><th>Tienda</th><th>Producto</th><th>Talla</th><th>Color</th><th>SKU</th><th>Cantidad</th></tr></thead>
+<tbody>{% for inv,var,base,tienda in inventarios %}<tr><td>{{ tienda.nombre }}</td><td>{{ base.nombre }}</td><td>{{ var.talla }}</td><td>{{ var.color }}</td><td>{{ var.sku }}</td><td><strong>{{ inv.cantidad }}</strong></td></tr>{% endfor %}{% if inventarios|length==0 %}<tr><td colspan="6" class="text-center text-muted">Sin stock. Registra una <strong>ENTRADA</strong> para iniciar inventario.</td></tr>{% endif %}</tbody></table>
+<div class="mt-3"><a class="btn btn-outline-primary" href="{{ url_for('exportar_inventario') }}">Exportar inventario a Excel</a></div>
+{% endblock %}

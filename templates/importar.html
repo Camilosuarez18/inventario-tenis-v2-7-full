@@ -1,0 +1,16 @@
+{% extends 'base.html' %}{% block content %}
+<h2>Importar productos y variantes (Excel / CSV)</h2>
+<div class="card mb-3"><div class="card-body">
+  <p>Descarga la plantilla, complétala y súbela en formato <strong>.xlsx</strong> o <strong>.csv</strong>.</p>
+  <a class="btn btn-outline-primary" href="{{ url_for('plantilla_importacion') }}">Descargar plantilla</a>
+</div></div>
+<div class="card"><div class="card-body">
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    <div class="col-md-6"><label class="form-label">Archivo (.xlsx o .csv)</label><input class="form-control" type="file" name="archivo" accept=".xlsx,.csv" required></div>
+    <div class="col-12"><button class="btn btn-success">Importar</button><a href="{{ url_for('productos_list') }}" class="btn btn-outline-secondary ms-2">Cancelar</a></div>
+  </form>
+  <hr/>
+  <h6>Columnas requeridas</h6>
+  <pre class="mb-0">base_nombre | marca | descripcion | talla | color | sku | precio</pre>
+</div></div>
+{% endblock %}

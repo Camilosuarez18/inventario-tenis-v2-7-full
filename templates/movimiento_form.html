@@ -1,0 +1,13 @@
+{% extends 'base.html' %}{% block content %}
+<h2>Nuevo movimiento</h2>
+<form action="{{ url_for('movimientos_nuevo') }}" method="post" class="row g-3">
+  <div class="col-md-3"><label class="form-label">Tipo</label><select name="tipo" id="tipo" class="form-select" required><option value="ENTRADA">ENTRADA</option><option value="SALIDA">SALIDA</option><option value="TRASLADO">TRASLADO</option></select></div>
+  <div class="col-md-5"><label class="form-label">Variante</label><select name="variante_id" class="form-select" required>{% for v,b in variantes %}<option value="{{ v.id }}">{{ b.nombre }} - {{ v.talla }} - {{ v.color }} ({{ v.sku }})</option>{% endfor %}</select></div>
+  <div class="col-md-2"><label class="form-label">Cantidad</label><input class="form-control" type="number" name="cantidad" min="1" required></div>
+  <div class="col-md-4 origen"><label class="form-label">Tienda origen</label><select name="origen_tienda_id" class="form-select"><option value="">--</option>{% for t in tiendas %}<option value="{{ t.id }}">{{ t.nombre }}</option>{% endfor %}</select></div>
+  <div class="col-md-4 destino"><label class="form-label">Tienda destino</label><select name="destino_tienda_id" class="form-select"><option value="">--</option>{% for t in tiendas %}<option value="{{ t.id }}">{{ t.nombre }}</option>{% endfor %}</select></div>
+  <div class="col-12"><label class="form-label">Nota</label><input class="form-control" name="nota" placeholder="Detalle del movimiento"></div>
+  <div class="col-12"><button class="btn btn-success">Guardar movimiento</button><a class="btn btn-outline-secondary ms-2" href="{{ url_for('movimientos_list') }}">Cancelar</a></div>
+</form>
+<script>const t=document.getElementById('tipo'),o=document.querySelector('.origen'),d=document.querySelector('.destino');function a(){const v=t.value;o.style.display=(v==='SALIDA'||v==='TRASLADO')?'block':'none';d.style.display=(v==='ENTRADA'||v==='TRASLADO')?'block':'none'}t.addEventListener('change',a);a();</script>
+{% endblock %}

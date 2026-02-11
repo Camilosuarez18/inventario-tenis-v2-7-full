@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block content %}
+<div class="row"><div class="col-12 col-lg-6"><div class="card border-danger"><div class="card-body"><h5 class="card-title text-danger">Eliminar usuario</h5>
+<p>¿Seguro que deseas eliminar al usuario <strong>{{ user.nombre }}</strong>?</p>
+<form method="post"><button class="btn btn-danger">Eliminar definitivamente</button><a class="btn btn-outline-secondary ms-2" href="{{ url_for('usuarios_list') }}">Cancelar</a></form>
+</div></div></div></div>
+{% endblock %}

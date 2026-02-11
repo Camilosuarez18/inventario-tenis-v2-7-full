@@ -1,0 +1,8 @@
+{% extends 'base.html' %}{% block content %}
+<div class="row"><div class="col-12 col-lg-5"><div class="card"><div class="card-body"><h5 class="card-title">Cambiar rol</h5>
+<form method="post" class="row g-3">
+  <div class="col-12"><label class="form-label">Usuario</label><input class="form-control" value="{{ user.nombre }}" disabled></div>
+  <div class="col-12"><label class="form-label">Rol</label><select class="form-select" name="rol"><option value="vendedor" {% if user.rol=='vendedor' %}selected{% endif %}>vendedor</option><option value="admin" {% if user.rol=='admin' %}selected{% endif %}>admin</option></select></div>
+  <div class="col-12"><button class="btn btn-primary">Guardar cambios</button><a class="btn btn-outline-secondary ms-2" href="{{ url_for('usuarios_list') }}">Cancelar</a></div>
+</form></div></div></div></div>
+{% endblock %}

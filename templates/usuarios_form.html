@@ -1,0 +1,10 @@
+{% extends 'base.html' %}{% block content %}
+<div class="row"><div class="col-12 col-lg-6"><div class="card"><div class="card-body"><h5 class="card-title">Nuevo usuario</h5>
+<form method="post" class="row g-3">
+  <div class="col-12"><label class="form-label">Usuario</label><input class="form-control" name="nombre" minlength="4" required></div>
+  <div class="col-12"><label class="form-label">Rol</label><select class="form-select" name="rol"><option value="vendedor">vendedor</option><option value="admin">admin</option></select></div>
+  <div class="col-12 col-md-6"><label class="form-label">Contraseña</label><input class="form-control" type="password" name="password" minlength="6" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Confirmar contraseña</label><input class="form-control" type="password" name="password2" minlength="6" required></div>
+  <div class="col-12"><button class="btn btn-success">Crear</button><a class="btn btn-outline-secondary ms-2" href="{{ url_for('usuarios_list') }}">Cancelar</a></div>
+</form></div></div></div></div>
+{% endblock %}

@@ -1,0 +1,11 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Login</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"></head>
+<body><main class="form-signin" style="max-width:380px;margin:auto;padding:40px 0;">
+<form method="post" class="card card-body">
+  <img class="img-fluid mx-auto d-block mb-3" src="{{ url_for('static', filename='logo.png') }}" alt="" style="max-width:120px;">
+  <h1 class="h4 mb-3 text-center">Inventario Tenis</h1>
+  <div class="mb-2"><label class="form-label">Usuario</label><input class="form-control" name="nombre" required></div>
+  <div class="mb-3"><label class="form-label">Contraseña</label><input class="form-control" type="password" name="password" required></div>
+  <button class="btn btn-primary w-100">Entrar</button>
+</form></main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script></body></html>

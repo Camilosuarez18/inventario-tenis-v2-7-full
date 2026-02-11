@@ -1,0 +1,22 @@
+{% extends 'base.html' %}{% block content %}
+<h2>Editar variante — {{ base.nombre }}</h2>
+<form method="post" enctype="multipart/form-data" class="row g-3">
+  <div class="col-md-2"><label class="form-label">Talla*</label><input class="form-control" name="talla" value="{{ var.talla }}" required></div>
+  <div class="col-md-2"><label class="form-label">Color</label><input class="form-control" name="color" value="{{ var.color }}"></div>
+  <div class="col-md-3"><label class="form-label">SKU</label><input class="form-control" name="sku" value="{{ var.sku }}"></div>
+  <div class="col-md-2"><label class="form-label">Precio</label><input class="form-control" type="number" step="0.01" name="precio" value="{{ var.precio or 0 }}"></div>
+  <div class="col-md-3">
+    <label class="form-label">Imagen (opcional)</label>
+    <input class="form-control" type="file" name="imagen" accept="image/*">
+    {% if var.imagen_filename %}
+      <div class="mt-2 d-flex align-items-center gap-2">
+        <img src="{{ url_for('static', filename='uploads/' ~ var.imagen_filename) }}" style="max-height:70px">
+        <form method="post" action="{{ url_for('producto_variante_quitar_imagen', variante_id=var.id) }}" onsubmit="return confirm('¿Quitar imagen actual?');">
+          <button class="btn btn-sm btn-outline-danger">Quitar imagen</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+  <div class="col-12"><button class="btn btn-primary">Guardar cambios</button><a href="{{ url_for('productos_list') }}" class="btn btn-outline-secondary ms-2">Cancelar</a></div>
+</form>
+{% endblock %}

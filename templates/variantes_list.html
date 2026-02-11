@@ -1,0 +1,41 @@
+{% extends 'base.html' %}{% block content %}
+<h2>Variantes — Búsqueda y Paginación</h2>
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-3"><input class="form-control" type="text" name="q" placeholder="Buscar (nombre, marca, SKU, color, talla)" value="{{ q }}"></div>
+  <div class="col-md-2"><select class="form-select" name="marca"><option value="">Marca</option>{% for m in marcas %}<option value="{{ m }}" {% if marca==m %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><select class="form-select" name="talla"><option value="">Talla</option>{% for t in tallas %}<option value="{{ t }}" {% if talla==t %}selected{% endif %}>{{ t }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><select class="form-select" name="color"><option value="">Color</option>{% for c in colores %}<option value="{{ c }}" {% if color==c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><input class="form-control" type="text" name="sku" placeholder="SKU exacto" value="{{ sku }}"></div>
+  <div class="col-md-1"><select class="form-select" name="per_page"><option {% if per_page==25 %}selected{% endif %}>25</option><option {% if per_page==50 %}selected{% endif %}>50</option><option {% if per_page==100 %}selected{% endif %}>100</option></select></div>
+  <div class="col-md-12"><button class="btn btn-primary">Filtrar</button> <a class="btn btn-outline-secondary ms-2" href="{{ url_for('variantes_list') }}">Limpiar</a></div>
+</form>
+<p class="text-muted">Resultados: {{ total }} — Página {{ page }} de {{ total_pages }}</p>
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+  <thead><tr><th>Imagen</th><th>Producto</th><th>Marca</th><th>Talla</th><th>Color</th><th>SKU</th><th>Precio</th><th></th></tr></thead>
+  <tbody>
+  {% for v, b in items %}
+    <tr>
+      <td style="width:90px">{% if v.imagen_filename %}<img src="{{ url_for('static', filename='uploads/' ~ v.imagen_filename) }}" style="max-height:70px">{% else %}<span class="text-muted">—</span>{% endif %}</td>
+      <td>{{ b.nombre }}</td>
+      <td>{{ b.marca }}</td>
+      <td>{{ v.talla }}</td>
+      <td>{{ v.color }}</td>
+      <td>{{ v.sku }}</td>
+      <td>${{ '%.0f'|format(v.precio or 0) }}</td>
+      <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('producto_variante_editar', variante_id=v.id) }}">Editar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<nav aria-label="Paginación">
+  <ul class="pagination">
+    <li class="page-item {% if page==1 %}disabled{% endif %}"><a class="page-link" href="{{ url_for('variantes_list', q=q, marca=marca, talla=talla, color=color, sku=sku, per_page=per_page, page=page-1) }}">«</a></li>
+    {% for p in range(1, total_pages+1) %}
+      <li class="page-item {% if p==page %}active{% endif %}"><a class="page-link" href="{{ url_for('variantes_list', q=q, marca=marca, talla=talla, color=color, sku=sku, per_page=per_page, page=p) }}">{{ p }}</a></li>
+    {% endfor %}
+    <li class="page-item {% if page==total_pages %}disabled{% endif %}"><a class="page-link" href="{{ url_for('variantes_list', q=q, marca=marca, talla=talla, color=color, sku=sku, per_page=per_page, page=page+1) }}">»</a></li>
+  </ul>
+</nav>
+{% endblock %}

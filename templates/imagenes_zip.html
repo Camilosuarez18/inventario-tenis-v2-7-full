@@ -1,0 +1,14 @@
+{% extends 'base.html' %}{% block content %}
+<h2>Carga masiva de imágenes por SKU (ZIP)</h2>
+<div class="card"><div class="card-body">
+  <p>Sube un archivo <strong>.zip</strong> donde cada imagen tenga como nombre el <strong>SKU</strong> de la variante (por ejemplo: <code>RUNX-40-NG.jpg</code>).</p>
+  <ul>
+    <li>Extensiones: <code>png, jpg, jpeg, gif, webp</code></li>
+    <li>Las imágenes se optimizan a máx <strong>1200×1200</strong>, calidad <strong>85</strong>.</li>
+  </ul>
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    <div class="col-md-6"><label class="form-label">Archivo ZIP</label><input class="form-control" type="file" name="archivo" accept=".zip" required></div>
+    <div class="col-12"><button class="btn btn-success">Procesar ZIP</button> <a class="btn btn-outline-secondary ms-2" href="{{ url_for('variantes_list') }}">Volver</a></div>
+  </form>
+</div></div>
+{% endblock %}
