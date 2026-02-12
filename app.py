@@ -143,7 +143,7 @@ class Movimiento(db.Model):
     __tablename__ = 'movimientos'
     id = db.Column(db.Integer, primary_key=True)
     fecha = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    tipo = db.Column(db.String(20), nullable=False)  # ENTRADA/SALIDA/TRASLADO
+    tipo = db.Column(db.String(20), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     nota = db.Column(db.String(255))
     usuario_nombre = db.Column(db.String(120))
@@ -162,7 +162,6 @@ class Movimiento(db.Model):
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
 
-# ---------- Auth helper ----------
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -238,7 +237,7 @@ def index():
                            chart_labels=labels, chart_entradas=data_entradas, chart_salidas=data_salidas,
                            top_labels=top_labels, top_values=top_values)
 
-# ---------- Usuarios (ADMIN) ----------
+# ---------- Usuarios ----------
 @app.route('/usuarios')
 @login_required
 @admin_required
@@ -362,20 +361,16 @@ def producto_base_nuevo():
     nombre = request.form.get('nombre','')
     marca = request.form.get('marca','')
     descripcion = request.form.get('descripcion','')
-
     if not nombre.strip():
         flash('El nombre del producto es obligatorio.', 'danger')
         return redirect(url_for('productos_list'))
-
     existente = (ProductoBase.query.filter(
         func.lower(func.trim(ProductoBase.nombre)) == nombre.strip().lower(),
         func.lower(func.trim(ProductoBase.marca)) == (marca.strip().lower() or None)
     ).first())
-
     if existente:
         flash('⚠️ Ya existe un producto con ese nombre y marca.', 'warning')
         return redirect(url_for('productos_list'))
-
     b = ProductoBase(nombre=nombre.strip(), marca=(marca.strip() or None), descripcion=descripcion.strip() or None)
     db.session.add(b); db.session.commit(); flash('Producto base creado.', 'success')
     return redirect(url_for('productos_list'))
@@ -398,11 +393,9 @@ def producto_base_editar(base_id):
         nuevo_nombre = request.form.get('nombre','')
         nueva_marca = request.form.get('marca','')
         b.descripcion = (request.form.get('descripcion','') or '').strip() or None
-
         if not nuevo_nombre.strip():
             flash('El nombre del producto es obligatorio.', 'danger')
             return redirect(url_for('producto_base_editar', base_id=base_id))
-
         dup = (ProductoBase.query.filter(
             func.lower(func.trim(ProductoBase.nombre)) == nuevo_nombre.strip().lower(),
             func.lower(func.trim(ProductoBase.marca)) == (nueva_marca.strip().lower() or None),
@@ -411,7 +404,6 @@ def producto_base_editar(base_id):
         if dup:
             flash('⚠️ Ya existe otro producto con ese nombre y marca.', 'warning')
             return redirect(url_for('producto_base_editar', base_id=base_id))
-
         b.nombre = nuevo_nombre.strip(); b.marca = (nueva_marca.strip() or None)
         db.session.commit(); flash('Producto base actualizado.', 'success')
         return redirect(url_for('productos_list'))
@@ -580,16 +572,12 @@ def imagenes_cargar_zip():
         updated = not_found = invalid = errors = 0
         rows = []
         for name in zf.namelist():
-            if name.endswith('/'):
-                continue
+            if name.endswith('/'): continue
             base = os.path.basename(name)
             ext = os.path.splitext(base)[1].lower()
             sku_name = os.path.splitext(base)[0].strip()
-            estado = ''
-            img_final = ''
-            err_txt = ''
-            if not sku_name:
-                continue
+            estado = ''; img_final = ''; err_txt = ''
+            if not sku_name: continue
             if ext.replace('.', '') not in ALLOWED_EXTENSIONS:
                 invalid += 1; estado = 'Extensión inválida'
                 rows.append({'SKU': sku_name, 'Archivo ZIP': base, 'Estado': estado, 'Imagen guardada': img_final, 'Error': err_txt}); continue
@@ -607,7 +595,7 @@ def imagenes_cargar_zip():
                 rows.append({'SKU': sku_name, 'Archivo ZIP': base, 'Estado': estado, 'Imagen guardada': img_final, 'Error': err_txt})
             except Exception as e:
                 errors += 1; estado = 'Error'; err_txt = str(e)
-                rows.append({'SKU': sku_name, 'Archivo ZIP': base, 'Estado': estado, 'Imagen guardada': img_final, 'Error': err_txt}); app.logger.warning(f'Error con {name}: {e}')
+                rows.append({'SKU': sku_name, 'Archivo ZIP': base, 'Estado': estado, 'Imagen guardada': img_final, 'Error': err_txt})
         try:
             db.session.commit()
         except Exception as e:
@@ -711,39 +699,50 @@ def movimientos_nuevo():
         flash('Tipo de movimiento inválido.', 'danger')
         return redirect(url_for('movimientos_nuevo_form'))
         
-    if not variante_id or not cantidad or cantidad<=0:
+    if not variante_id or not cantidad or cantidad <= 0:
         flash('Variante y cantidad (>0) son obligatorios.', 'danger')
         return redirect(url_for('movimientos_nuevo_form'))
         
     try:
-        with db.session.begin():
-            if tipo=='ENTRADA':
-                if not destino_id: raise ValueError('Selecciona tienda destino para ENTRADA')
-                inv_dest = obtener_inventario(destino_id, variante_id); inv_dest.cantidad += cantidad
-            elif tipo=='SALIDA':
-                if not origen_id: raise ValueError('Selecciona tienda origen para SALIDA')
-                inv_ori = obtener_inventario(origen_id, variante_id)
-                if inv_ori.cantidad < cantidad: raise ValueError('Stock insuficiente para la salida')
-                inv_ori.cantidad -= cantidad
-            else:
-                if not origen_id or not destino_id or origen_id==destino_id: raise ValueError('TRASLADO requiere origen y destino distintos')
-                inv_ori = obtener_inventario(origen_id, variante_id)
-                if inv_ori.cantidad < cantidad: raise ValueError('Stock insuficiente para el traslado')
-                inv_dest = obtener_inventario(destino_id, variante_id)
-                inv_ori.cantidad -= cantidad; inv_dest.cantidad += cantidad
-                
-            mov = Movimiento(tipo=tipo, cantidad=cantidad, nota=nota, usuario_nombre=current_user.nombre,
-                             variante_id=variante_id, origen_tienda_id=origen_id if tipo!='ENTRADA' else None,
-                             destino_tienda_id=destino_id if tipo!='SALIDA' else None)
-            db.session.add(mov)
-        flash('Movimiento registrado.', 'success')
+        # Se eliminó db.session.begin() para evitar conflictos de transacción
+        if tipo == 'ENTRADA':
+            if not destino_id: raise ValueError('Selecciona tienda destino para ENTRADA')
+            inv_dest = obtener_inventario(destino_id, variante_id)
+            inv_dest.cantidad += cantidad
+        elif tipo == 'SALIDA':
+            if not origen_id: raise ValueError('Selecciona tienda origen para SALIDA')
+            inv_ori = obtener_inventario(origen_id, variante_id)
+            if inv_ori.cantidad < cantidad: raise ValueError('Stock insuficiente para la salida')
+            inv_ori.cantidad -= cantidad
+        else: # TRASLADO
+            if not origen_id or not destino_id or origen_id == destino_id: 
+                raise ValueError('TRASLADO requiere origen y destino distintos')
+            inv_ori = obtener_inventario(origen_id, variante_id)
+            if inv_ori.cantidad < cantidad: raise ValueError('Stock insuficiente para el traslado')
+            inv_dest = obtener_inventario(destino_id, variante_id)
+            inv_ori.cantidad -= cantidad
+            inv_dest.cantidad += cantidad
+            
+        mov = Movimiento(
+            tipo=tipo, 
+            cantidad=cantidad, 
+            nota=nota, 
+            usuario_nombre=current_user.nombre,
+            variante_id=variante_id, 
+            origen_tienda_id=origen_id if tipo != 'ENTRADA' else None,
+            destino_tienda_id=destino_id if tipo != 'SALIDA' else None
+        )
+        db.session.add(mov)
+        db.session.commit()
+        flash('Movimiento registrado con éxito.', 'success')
+        
     except Exception as e:
-        db.session.rollback(); flash(f'No se pudo registrar el movimiento: {e}', 'danger')
+        db.session.rollback()
+        flash(f'No se pudo registrar el movimiento: {str(e)}', 'danger')
         
     return redirect(url_for('movimientos_list'))
 
 # ---------- Helpers ----------
-
 def obtener_inventario(tienda_id, variante_id):
     inv = Inventario.query.filter_by(tienda_id=tienda_id, variante_id=variante_id).first()
     if not inv:
@@ -781,7 +780,6 @@ def exportar_movimientos():
     return send_file(ruta, as_attachment=True)
 
 # ---------- Inicialización ----------
-
 def setup_db_and_admin():
     db.create_all()
     if not Usuario.query.filter_by(nombre='admin').first():
@@ -790,21 +788,11 @@ def setup_db_and_admin():
         db.session.add(u)
     if not Tienda.query.first():
         db.session.add_all([Tienda(nombre='Tienda Centro', direccion='Calle 10 #5-30'), Tienda(nombre='Tienda Norte', direccion='Av. 9 #120-45')])
-    if not ProductoBase.query.first():
-        b1=ProductoBase(nombre='Tenis Runner X', marca='Speedy', descripcion='Tenis para correr')
-        b2=ProductoBase(nombre='Tenis Street Pro', marca='Urban', descripcion='Tenis urbanos')
-        db.session.add_all([b1,b2]); db.session.flush()
-        db.session.add_all([
-            ProductoVariante(base_id=b1.id, talla='40', color='Negro', sku='RUNX-40-NG', precio=299900),
-            ProductoVariante(base_id=b1.id, talla='42', color='Azul', sku='RUNX-42-AZ', precio=299900),
-            ProductoVariante(base_id=b2.id, talla='41', color='Blanco', sku='URB-41-BL', precio=259900)
-        ])
     db.session.commit()
 
 with app.app_context():
     setup_db_and_admin()
 
 if __name__ == "__main__":
-    # Configuración dinámica para Railway
     port = int(os.environ.get("PORT", 8000))
     app.run(host="0.0.0.0", port=port)
