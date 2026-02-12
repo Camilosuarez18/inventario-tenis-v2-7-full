@@ -311,7 +311,6 @@ def productos_list():
     bases = ProductoBase.query.order_by(ProductoBase.marca, ProductoBase.nombre).all()
     return render_template('productos.html', bases=bases)
 
-# En v2.7 dejamos la pantalla de Variantes (buscar) para soporte
 @app.route('/variantes')
 @login_required
 def variantes_list():
@@ -364,7 +363,6 @@ def producto_base_nuevo():
     marca = request.form.get('marca','')
     descripcion = request.form.get('descripcion','')
 
-    # v2.7: validación básica (no robusta) — posible duplicado si marca vacía vs NULL
     if not nombre.strip():
         flash('El nombre del producto es obligatorio.', 'danger')
         return redirect(url_for('productos_list'))
@@ -708,12 +706,17 @@ def movimientos_nuevo():
     destino_id = request.form.get('destino_tienda_id', type=int)
     cantidad = request.form.get('cantidad', type=int)
     nota = request.form.get('nota','').strip()
+    
     if tipo not in ('ENTRADA','SALIDA','TRASLADO'):
-        flash('Tipo de movimiento inválido.', 'danger'); return redirect(url_for('movimientos_nuevo_form'))
+        flash('Tipo de movimiento inválido.', 'danger')
+        return redirect(url_for('movimientos_nuevo_form'))
+        
     if not variante_id or not cantidad or cantidad<=0:
-        flash('Variante y cantidad (>0) son obligatorios.', 'danger'); return redirect(url_for('movimientos_nuevo_form'))
+        flash('Variante y cantidad (>0) son obligatorios.', 'danger')
+        return redirect(url_for('movimientos_nuevo_form'))
+        
     try:
-        db.session.commit()
+        with db.session.begin():
             if tipo=='ENTRADA':
                 if not destino_id: raise ValueError('Selecciona tienda destino para ENTRADA')
                 inv_dest = obtener_inventario(destino_id, variante_id); inv_dest.cantidad += cantidad
@@ -728,6 +731,7 @@ def movimientos_nuevo():
                 if inv_ori.cantidad < cantidad: raise ValueError('Stock insuficiente para el traslado')
                 inv_dest = obtener_inventario(destino_id, variante_id)
                 inv_ori.cantidad -= cantidad; inv_dest.cantidad += cantidad
+                
             mov = Movimiento(tipo=tipo, cantidad=cantidad, nota=nota, usuario_nombre=current_user.nombre,
                              variante_id=variante_id, origen_tienda_id=origen_id if tipo!='ENTRADA' else None,
                              destino_tienda_id=destino_id if tipo!='SALIDA' else None)
@@ -735,6 +739,7 @@ def movimientos_nuevo():
         flash('Movimiento registrado.', 'success')
     except Exception as e:
         db.session.rollback(); flash(f'No se pudo registrar el movimiento: {e}', 'danger')
+        
     return redirect(url_for('movimientos_list'))
 
 # ---------- Helpers ----------
@@ -775,7 +780,7 @@ def exportar_movimientos():
     df = pd.DataFrame(data); ruta = os.path.join(BASE_DIR, 'export_movimientos.xlsx'); df.to_excel(ruta, index=False)
     return send_file(ruta, as_attachment=True)
 
-# ---------- Inicialización (compatible Flask 3.x) ----------
+# ---------- Inicialización ----------
 
 def setup_db_and_admin():
     db.create_all()
@@ -799,10 +804,7 @@ def setup_db_and_admin():
 with app.app_context():
     setup_db_and_admin()
 
-
 if __name__ == "__main__":
-    # Railway proporciona el puerto en la variable de entorno PORT
+    # Configuración dinámica para Railway
     port = int(os.environ.get("PORT", 8000))
     app.run(host="0.0.0.0", port=port)
-
-
