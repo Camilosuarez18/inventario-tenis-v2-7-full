@@ -713,7 +713,7 @@ def movimientos_nuevo():
     if not variante_id or not cantidad or cantidad<=0:
         flash('Variante y cantidad (>0) son obligatorios.', 'danger'); return redirect(url_for('movimientos_nuevo_form'))
     try:
-        with db.session.begin():
+        db.session.commit():
             if tipo=='ENTRADA':
                 if not destino_id: raise ValueError('Selecciona tienda destino para ENTRADA')
                 inv_dest = obtener_inventario(destino_id, variante_id); inv_dest.cantidad += cantidad
